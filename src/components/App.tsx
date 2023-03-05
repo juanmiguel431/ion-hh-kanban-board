@@ -3,10 +3,11 @@ import Board from './Board';
 import { Button, Form, Modal } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import CardForm from './CardForm';
+import { ICard } from '../models';
 
 export const App: React.FC = () => {
   const [modalOpened, setModalOpened] = useState<boolean>(false);
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<ICard>();
 
   return (
     <div className="app">

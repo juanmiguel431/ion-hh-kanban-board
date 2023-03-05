@@ -3,11 +3,12 @@ import { DatePicker, Form, Input } from 'antd';
 import CheckableTag from './CheckableTag';
 import TextArea from 'antd/lib/input/TextArea';
 import { FormInstance } from 'antd/es/form/hooks/useForm';
+import { CardTags, ICard } from '../models';
 
-const tagsData = ['SEO', 'Long Form', 'Blog Post'];
+const tagsData: CardTags[] = ['SEO', 'Long Form', 'Blog Post'];
 
-interface IProps<T = any> {
-  form?: FormInstance<T>;
+interface IProps {
+  form: FormInstance<ICard>;
 }
 
 const CardForm: React.FC<IProps> = ({form}) => {
