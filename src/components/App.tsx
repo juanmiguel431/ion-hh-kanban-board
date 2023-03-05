@@ -7,7 +7,7 @@ import { ICard } from '../models';
 
 const { confirm } = Modal;
 
-const data: ReactTrello.BoardData = {
+const initialData: ReactTrello.BoardData = {
   lanes: [
     {
       id: 'lane1',
@@ -51,6 +51,7 @@ const data: ReactTrello.BoardData = {
 export const App: React.FC = () => {
   const [modalOpened, setModalOpened] = useState<boolean>(false);
   const [form] = Form.useForm<ICard>();
+  const [data, setData] = useState<ReactTrello.BoardData>(initialData);
 
   return (
     <div className="app">
@@ -68,7 +69,7 @@ export const App: React.FC = () => {
       <Divider/>
 
       <Board
-        data={{ ...data }}
+        data={data}
         onBeforeCardDelete={cb => {
           confirm({
             title: 'Do you want to delete this item?',
@@ -88,8 +89,18 @@ export const App: React.FC = () => {
           setModalOpened(false);
         }}
         onOk={_ => {
-          form.validateFields().then(values => {
-            console.log(values);
+          form.validateFields().then(item => {
+            const todoLane = data.lanes.find(p => p.id === 'lane1');
+            const preFix = 'Card';
+            const id = todoLane.cards ? `${preFix}${todoLane.cards.length + 1}` : `${preFix}1`;
+            const card: ReactTrello.DraggableCard = {
+              id: id,
+              title: item.title,
+              description: item.description
+            };
+
+            todoLane.cards?.push(card);
+            setData({ ...data });
             setModalOpened(false);
           })
         }}
