@@ -4,7 +4,7 @@ import { Affix, Button, Divider, Form, Modal } from 'antd';
 import { ExclamationCircleFilled, PlusOutlined } from '@ant-design/icons';
 import CardForm from './CardForm';
 import { CardStatus, ICard } from '../models';
-import { Guid } from "guid-typescript";
+import { Guid } from 'guid-typescript';
 
 const { confirm } = Modal;
 
@@ -13,50 +13,72 @@ const initialData: ReactTrello.BoardData = {
     {
       id: 'Todo',
       title: 'To do',
-      label: '2/2',
+      label: '2/4',
       cards: [
         {
           id: 'b77d409a-10cd-4a47-8e94-b0cd0ab50aa1',
           title: 'Write Blog',
           description: 'Can AI make memes',
           label: '30 mins',
-          metadata: { id: 'b77d409a-10cd-4a47-8e94-b0cd0ab50aa1', title: 'Write Blog', description: 'Can AI make memes', status: 'Todo' },
-          draggable: false
+          laneId: 'Todo',
+          metadata: {
+            id: 'b77d409a-10cd-4a47-8e94-b0cd0ab50aa1',
+            title: 'Write Blog',
+            description: 'Can AI make memes',
+            status: 'Todo'
+          },
         },
         {
           id: 'b77d409a-10cd-4a47-8e94-b0cd0ab50aa2',
           title: 'Pay Rent',
           description: 'Transfer via NEFT',
           label: '5 mins',
-          metadata: { id: 'b77d409a-10cd-4a47-8e94-b0cd0ab50aa2', title: 'Pay Rent', description: 'Transfer via NEFT', status: 'Todo' },
+          laneId: 'Todo',
+          metadata: {
+            id: 'b77d409a-10cd-4a47-8e94-b0cd0ab50aa2',
+            title: 'Pay Rent',
+            description: 'Transfer via NEFT',
+            status: 'Todo'
+          },
         }
       ]
     },
     {
       id: 'InProgress',
       title: 'In progress',
-      label: '0/0',
+      label: '0/4',
       cards: []
     },
     {
       id: 'Done',
       title: 'Done',
-      label: '2/2',
+      label: '2/4',
       cards: [
         {
           id: 'b77d409a-10cd-4a47-8e94-b0cd0ab50aa3',
           title: 'Write Blog',
           description: 'Can AI make memes',
           label: '30 mins',
-          draggable: false,
-          metadata: { id: 'b77d409a-10cd-4a47-8e94-b0cd0ab50aa3', title: 'Write Blog', description: 'Can AI make memes', status: 'Done' },
+          laneId: 'Done',
+          metadata: {
+            id: 'b77d409a-10cd-4a47-8e94-b0cd0ab50aa3',
+            title: 'Write Blog',
+            description: 'Can AI make memes',
+            status: 'Done'
+          },
         },
         {
           id: 'b77d409a-10cd-4a47-8e94-b0cd0ab50aa4',
           title: 'Pay Rent',
           description: 'Transfer via NEFT',
           label: '5 mins',
-          metadata: { id: 'b77d409a-10cd-4a47-8e94-b0cd0ab50aa4', title: 'Pay Rent', description: 'Transfer via NEFT', status: 'Done' },
+          laneId: 'Done',
+          metadata: {
+            id: 'b77d409a-10cd-4a47-8e94-b0cd0ab50aa4',
+            title: 'Pay Rent',
+            description: 'Transfer via NEFT',
+            status: 'Done'
+          },
         }
       ]
     },
@@ -87,16 +109,18 @@ export const App: React.FC = () => {
 
       <Board
         data={data}
+        onDataChange={setData}
         onBeforeCardDelete={cb => {
           confirm({
             title: 'Do you want to delete this item?',
             icon: <ExclamationCircleFilled/>,
             onOk: async () => {
+              await new Promise(r => setTimeout(r, 1500));
               cb();
             }
           });
         }}
-        onCardClick={(cardId,metadata: ICard) => {
+        onCardClick={(cardId, metadata: ICard) => {
           setCurrentCard(metadata);
           form.resetFields();
           form.setFieldsValue(metadata);
@@ -114,7 +138,7 @@ export const App: React.FC = () => {
         onOk={_ => {
           form.validateFields().then(item => {
             if (currentCard) {
-              const cardEdited = {...currentCard, ...item};
+              const cardEdited = { ...currentCard, ...item };
               const lane = data.lanes.find(p => p.id === cardEdited.status);
               const card = lane.cards?.find((p: ReactTrello.DraggableCard) => p.id === cardEdited.id);
               card.title = cardEdited.title;
@@ -129,6 +153,7 @@ export const App: React.FC = () => {
               item.status = todo;
               const card: ReactTrello.DraggableCard = {
                 id: item.id,
+                laneId: item.status,
                 title: item.title,
                 description: item.description,
                 metadata: item,

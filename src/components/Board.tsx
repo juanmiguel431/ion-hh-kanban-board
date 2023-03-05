@@ -6,17 +6,20 @@ interface IProps {
   onCardDelete?: (cardId: string, laneId: string) => void;
   onCardClick?: (cardId: string, metadata: any, laneId: string) => void;
   onBeforeCardDelete?: (callback: Function) => void;
+  onDataChange?: (newData: any) => void;
 }
 
-export const Board: React.FC<IProps> = ({ data, onCardDelete, onBeforeCardDelete, onCardClick }) => {
+export const Board: React.FC<IProps> = (props) => {
 
   return (
     <div className="board">
-      <TrelloBoard<any>
-        data={data}
-        onCardDelete={onCardDelete}
-        onBeforeCardDelete={onBeforeCardDelete}
-        onCardClick={onCardClick}
+      <TrelloBoard
+        style={{ background: '#8ba4d6' }}
+        data={props.data}
+        onCardDelete={props.onCardDelete}
+        onBeforeCardDelete={props.onBeforeCardDelete}
+        onCardClick={props.onCardClick}
+        onDataChange={props.onDataChange}
       />
     </div>
   );

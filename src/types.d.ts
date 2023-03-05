@@ -35,6 +35,8 @@ declare namespace ReactTrello {
     description?: string;
     label?: string;
     metadata?: any;
+    draggable?: boolean;
+    laneId: string;
   }
 
   interface Lane {
@@ -42,7 +44,6 @@ declare namespace ReactTrello {
     title?: string;
     label?: string;
     cards?: Array<DraggableCard>;
-    disallowAddingCard?: boolean;
   }
 
   interface BoardProps<CardMetaData = object> {
