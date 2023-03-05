@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Space, Tag } from 'antd';
 
 const { CheckableTag: AntCheckableTag  } = Tag;
@@ -11,6 +11,10 @@ interface IProps {
 
 export const CheckableTag: React.FC<IProps> = ({ dataSource, value, onChange}) => {
   const [selectedTags, setSelectedTags] = useState<string[]>(value || []);
+
+  useEffect(() => {
+    setSelectedTags(value || []);
+  }, [value]);
 
   const handleChange = (tag: string, checked: boolean) => {
     const nextSelectedTags = checked
