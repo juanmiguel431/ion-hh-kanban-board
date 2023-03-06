@@ -24,9 +24,22 @@ export const App: React.FC = () => {
   const [modalOpened, setModalOpened] = useState(false);
   const [form] = Form.useForm<ICard>();
   const [data, setData] = useState<ReactTrello.BoardData>(initialData);
+  const [filteredData, setFilteredData] = useState<ReactTrello.BoardData>(data);
   const [currentCard, setCurrentCard] = useState<ICard | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialState, setIsInitialState] = useState(true);
+  const [term, setTerm] = useState('');
+  const [debouncedTerm, setDebouncedTerm] = useState(term);
+
+  useEffect(() => {
+    const timerId = setInterval(() => {
+      setDebouncedTerm(term);
+    }, 500);
+
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [term]);
 
   useEffect(() => {
     const storageHelper = new LocalStorageHelper();
@@ -39,9 +52,17 @@ export const App: React.FC = () => {
         const boardData: ReactTrello.BoardData = storageHelper.getByKey(kanbanBoardKey);
         if (boardData) {
           setData(boardData);
+
+          const filteredData = getDeepCloneOfDataObject(boardData);
+          filteredData.lanes.forEach(l => {
+            l.cards = l.cards?.filter((c: ReactTrello.DraggableCard) => c.title.toLowerCase().indexOf(debouncedTerm.toLowerCase()) !== -1);
+          });
+
+          setFilteredData(filteredData);
         } else {
           storageHelper.setItem(kanbanBoardKey, initialData);
           setData(initialData);
+          setFilteredData(initialData);
         }
         setIsInitialState(false);
       } finally {
@@ -51,7 +72,7 @@ export const App: React.FC = () => {
 
     fetchBoardData();
 
-  }, []);
+  }, [debouncedTerm]);
 
   const onFormSubmitted = () => {
     form.validateFields().then(async item => {
@@ -60,7 +81,7 @@ export const App: React.FC = () => {
 
         setIsLoading(true);
 
-        const newData = getNewDataObject();
+        const newData = getDeepCloneOfDataObject(data);
 
         if (currentCard) {
           const cardEdited = { ...currentCard, ...item };
@@ -97,7 +118,7 @@ export const App: React.FC = () => {
     });
   };
 
-  const getNewDataObject = (): ReactTrello.BoardData => {
+  const getDeepCloneOfDataObject = (data: ReactTrello.BoardData): ReactTrello.BoardData => {
     const newData = { ...data };
 
     newData.lanes = newData.lanes.map(l => {
@@ -123,10 +144,20 @@ export const App: React.FC = () => {
       }
 
       setData(newData);
+      handleUpdateFilteredData(newData);
 
     } finally {
       setIsLoading(false);
     }
+  }
+
+  const handleUpdateFilteredData = (newData: ReactTrello.BoardData) => {
+    const filteredData = getDeepCloneOfDataObject(newData);
+    filteredData.lanes.forEach(l => {
+      l.cards = l.cards?.filter((c: ReactTrello.DraggableCard) => c.title.toLowerCase().indexOf(debouncedTerm.toLowerCase()) !== -1);
+    });
+
+    setFilteredData(filteredData);
   }
 
   const onAddNew = () => {
@@ -161,7 +192,7 @@ export const App: React.FC = () => {
     try {
       setIsLoading(true);
 
-      const newData = getNewDataObject();
+      const newData = getDeepCloneOfDataObject(data);
       const sourceLane = newData.lanes.find(p => p.id === laneId);
       const cardIndex = sourceLane.cards?.findIndex((c: ReactTrello.DraggableCard) => c.id === cardId);
       sourceLane.cards?.splice(cardIndex, 1);
@@ -173,20 +204,28 @@ export const App: React.FC = () => {
   }
 
   const handleDragEnd = async (cardId: string, sourceLaneId: string, targetLaneId: string, position: number, cardDetails: ICard) => {
-    const newData = getNewDataObject();
+    const newData = getDeepCloneOfDataObject(data);
 
     const sourceLane = newData.lanes.find(p => p.id === sourceLaneId);
     const cardIndex = sourceLane.cards?.findIndex((c: ReactTrello.DraggableCard) => c.id === cardId);
 
+    let newPosition: number;
+    if (debouncedTerm) {
+      const cardInFilteredElements = filteredData.lanes.find(l => l.id === targetLaneId).cards.find((c: ReactTrello.DraggableCard, index: number) => index === position);
+      newPosition = newData.lanes.find(l => l.id === targetLaneId).cards.findIndex((c: ReactTrello.DraggableCard) => c.id === cardInFilteredElements.id);
+    } else {
+      newPosition = position;
+    }
+
     if (sourceLaneId === targetLaneId) {
       const fromIndex = cardIndex;
-      const toIndex = position;
+      const toIndex = newPosition;
       const element = sourceLane.cards.splice(fromIndex, 1)[0];
       sourceLane.cards.splice(toIndex, 0, element);
     } else {
       const card = sourceLane.cards.find((c: ReactTrello.DraggableCard) => c.id === cardId);
       const targetLane = newData.lanes.find(p => p.id === targetLaneId);
-      targetLane.cards?.splice(position, 0, { ...card, laneId: targetLaneId });
+      targetLane.cards?.splice(newPosition, 0, { ...card, laneId: targetLaneId });
       sourceLane.cards?.splice(cardIndex, 1);
     }
 
@@ -199,9 +238,12 @@ export const App: React.FC = () => {
         <Row gutter={16}>
           <Col span={8}>
             <Input
+              allowClear
               disabled={isLoading}
+              value={term}
+              onChange={value => setTerm(value.target.value)}
               placeholder="Enter a search"
-              prefix={<SearchOutlined />}
+              prefix={<SearchOutlined/>}
             />
           </Col>
           <Col span={12}>
@@ -219,7 +261,7 @@ export const App: React.FC = () => {
 
       <Spin spinning={isLoading} size="large">
         <Board
-          data={data}
+          data={filteredData}
           handleDragEnd={handleDragEnd}
           onBeforeCardDelete={onDeleteClick}
           onCardClick={onCardClick}
