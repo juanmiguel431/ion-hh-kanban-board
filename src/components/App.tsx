@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Board from './Board';
-import { Affix, Button, Divider, Form, Modal, Spin } from 'antd';
-import { ExclamationCircleFilled, PlusOutlined } from '@ant-design/icons';
+import { Affix, Button, Col, Divider, Form, Input, Modal, Row, Spin } from 'antd';
+import { ExclamationCircleFilled, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import CardForm from './CardForm';
 import { CardStatus, ICard } from '../models';
 import { Guid } from 'guid-typescript';
@@ -196,12 +196,23 @@ export const App: React.FC = () => {
   return (
     <div className="app">
       <Affix offsetTop={10}>
-        <Button
-          disabled={isLoading}
-          type="primary"
-          icon={<PlusOutlined/>}
-          onClick={onAddNew}
-        >Add new</Button>
+        <Row gutter={16}>
+          <Col span={8}>
+            <Input
+              disabled={isLoading}
+              placeholder="Enter a search"
+              prefix={<SearchOutlined />}
+            />
+          </Col>
+          <Col span={12}>
+            <Button
+              disabled={isLoading}
+              type="primary"
+              icon={<PlusOutlined/>}
+              onClick={onAddNew}
+            >Add new</Button>
+          </Col>
+        </Row>
       </Affix>
 
       <Divider/>
