@@ -91,17 +91,69 @@ export const App: React.FC = () => {
   const [data, setData] = useState<ReactTrello.BoardData>(initialData);
   const [currentCard, setCurrentCard] = useState<ICard | null>(null);
 
+  const onFormSubmitted = () => {
+    form.validateFields().then(item => {
+      if (currentCard) {
+        const cardEdited = { ...currentCard, ...item };
+        const lane = data.lanes.find(p => p.id === cardEdited.status);
+        const card = lane.cards?.find((p: ReactTrello.DraggableCard) => p.id === cardEdited.id);
+        card.title = cardEdited.title;
+        card.description = cardEdited.description;
+        card.metadata = cardEdited;
+
+        setCurrentCard(null);
+      } else {
+        const todo: CardStatus = 'Todo';
+        const lane = data.lanes.find(p => p.id === todo);
+        item.id = Guid.raw();
+        item.status = todo;
+        const card: ReactTrello.DraggableCard = {
+          id: item.id,
+          laneId: item.status,
+          title: item.title,
+          description: item.description,
+          metadata: item,
+        };
+
+        lane.cards?.push(card);
+      }
+
+      setData({ ...data });
+      setModalOpened(false);
+    });
+  };
+
+  const onAddNew = () => {
+    setCurrentCard(null);
+    form.resetFields();
+    setModalOpened(true);
+  };
+
+  const onCardClick = (cardId: string, metadata: ICard) => {
+    setCurrentCard(metadata);
+    form.resetFields();
+    form.setFieldsValue(metadata);
+    setModalOpened(true);
+  }
+
+  const onDeleteClick = (cb: Function) => {
+    confirm({
+      title: 'Do you want to delete this item?',
+      icon: <ExclamationCircleFilled/>,
+      onOk: async () => {
+        await new Promise(r => setTimeout(r, 1500));
+        cb();
+      }
+    });
+  };
+
   return (
     <div className="app">
       <Affix offsetTop={10}>
         <Button
           type="primary"
           icon={<PlusOutlined/>}
-          onClick={_ => {
-            setCurrentCard(null);
-            form.resetFields();
-            setModalOpened(true);
-          }}
+          onClick={onAddNew}
         >Add new</Button>
       </Affix>
 
@@ -110,22 +162,8 @@ export const App: React.FC = () => {
       <Board
         data={data}
         onDataChange={setData}
-        onBeforeCardDelete={cb => {
-          confirm({
-            title: 'Do you want to delete this item?',
-            icon: <ExclamationCircleFilled/>,
-            onOk: async () => {
-              await new Promise(r => setTimeout(r, 1500));
-              cb();
-            }
-          });
-        }}
-        onCardClick={(cardId, metadata: ICard) => {
-          setCurrentCard(metadata);
-          form.resetFields();
-          form.setFieldsValue(metadata);
-          setModalOpened(true);
-        }}
+        onBeforeCardDelete={onDeleteClick}
+        onCardClick={onCardClick}
       />
 
       <Modal
@@ -135,37 +173,7 @@ export const App: React.FC = () => {
         onCancel={_ => {
           setModalOpened(false);
         }}
-        onOk={_ => {
-          form.validateFields().then(item => {
-            if (currentCard) {
-              const cardEdited = { ...currentCard, ...item };
-              const lane = data.lanes.find(p => p.id === cardEdited.status);
-              const card = lane.cards?.find((p: ReactTrello.DraggableCard) => p.id === cardEdited.id);
-              card.title = cardEdited.title;
-              card.description = cardEdited.description;
-              card.metadata = cardEdited;
-
-              setCurrentCard(null);
-            } else {
-              const todo: CardStatus = 'Todo';
-              const lane = data.lanes.find(p => p.id === todo);
-              item.id = Guid.raw();
-              item.status = todo;
-              const card: ReactTrello.DraggableCard = {
-                id: item.id,
-                laneId: item.status,
-                title: item.title,
-                description: item.description,
-                metadata: item,
-              };
-
-              lane.cards?.push(card);
-            }
-
-            setData({ ...data });
-            setModalOpened(false);
-          })
-        }}
+        onOk={onFormSubmitted}
       >
         <CardForm form={form}/>
       </Modal>
