@@ -7,6 +7,13 @@ interface IProps {
   onCardClick?: (cardId: string, metadata: any, laneId: string) => void;
   onBeforeCardDelete?: (callback: Function) => void;
   onDataChange?: (newData: any) => void;
+  handleDragEnd?: (
+    cardId: string,
+    sourceLaneId: string,
+    targetLaneId: string,
+    position: number,
+    cardDetails: any
+  ) => void;
 }
 
 export const Board: React.FC<IProps> = (props) => {
@@ -20,6 +27,7 @@ export const Board: React.FC<IProps> = (props) => {
         onBeforeCardDelete={props.onBeforeCardDelete}
         onCardClick={props.onCardClick}
         onDataChange={props.onDataChange}
+        handleDragEnd={props.handleDragEnd}
       />
     </div>
   );

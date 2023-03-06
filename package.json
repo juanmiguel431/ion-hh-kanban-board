@@ -16,6 +16,7 @@
     "antd": "^5.2.3",
     "dayjs": "^1.11.7",
     "guid-typescript": "^1.0.9",
+    "js-base64": "^3.7.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",

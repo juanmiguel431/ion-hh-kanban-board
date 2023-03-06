@@ -44,6 +44,7 @@ declare namespace ReactTrello {
     title?: string;
     label?: string;
     cards?: Array<DraggableCard>;
+    currentPage?: number;
   }
 
   interface BoardProps<CardMetaData = object> {
@@ -76,7 +77,7 @@ declare namespace ReactTrello {
      */
     handleDragEnd?: (
       cardId: string,
-      sourceLandId: string,
+      sourceLaneId: string,
       targetLaneId: string,
       position: number,
       cardDetails: Card<CardMetaData>
