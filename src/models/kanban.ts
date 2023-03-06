@@ -1,4 +1,4 @@
-import * as dayjs from 'dayjs'
+import dayjs from 'dayjs'
 
 export interface ICard {
   id: string;
@@ -6,7 +6,8 @@ export interface ICard {
   title: string;
   description: string;
   tags: CardTags[];
-  dueDate: dayjs.Dayjs;
+  dueDate?: string;
+  dueDateObj?: dayjs.Dayjs;
 }
 
 export type CardTags = 'SEO' | 'Long Form' | 'Blog Post';

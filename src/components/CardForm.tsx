@@ -12,7 +12,7 @@ interface IProps {
   disabled?: boolean;
 }
 
-const CardForm: React.FC<IProps> = ({form, disabled}) => {
+const CardForm: React.FC<IProps> = ({ form, disabled }) => {
   return (
     <div className="card-form">
       <Form
@@ -40,13 +40,14 @@ const CardForm: React.FC<IProps> = ({form, disabled}) => {
           label="Tags"
           name="tags"
         >
-          <CheckableTag dataSource={tagsData} disabled={disabled} />
+          <CheckableTag dataSource={tagsData} disabled={disabled}/>
         </Form.Item>
         <Form.Item
           label="Due date"
-          name="dueDate"
+          name="dueDateObj"
         >
-          <DatePicker style={{ width: '100%' }}/>
+          <DatePicker style={{ width: '100%' }}
+          />
         </Form.Item>
       </Form>
     </div>

@@ -6,6 +6,7 @@ import CardForm from './CardForm';
 import { CardStatus, ICard } from '../models';
 import { Guid } from 'guid-typescript';
 import { LocalStorageHelper } from '../utils';
+import dayjs from 'dayjs';
 
 const { confirm } = Modal;
 
@@ -34,7 +35,7 @@ export const App: React.FC = () => {
     const fetchBoardData = async () => {
       try {
         setIsLoading(true);
-        await produceFakeDelay(5000);
+        await produceFakeDelay(2500);
         const boardData: ReactTrello.BoardData = storageHelper.getByKey(kanbanBoardKey);
         if (boardData) {
           setData(boardData);
@@ -63,6 +64,7 @@ export const App: React.FC = () => {
 
         if (currentCard) {
           const cardEdited = { ...currentCard, ...item };
+          cardEdited.dueDate = cardEdited.dueDateObj ? cardEdited.dueDateObj?.toISOString() : undefined;
           const lane = newData.lanes.find(p => p.id === cardEdited.status);
           const card = lane.cards?.find((p: ReactTrello.DraggableCard) => p.id === cardEdited.id);
           card.title = cardEdited.title;
@@ -75,6 +77,7 @@ export const App: React.FC = () => {
           const lane = newData.lanes.find(p => p.id === todo);
           item.id = Guid.raw();
           item.status = todo;
+          item.dueDate = item.dueDateObj ? item.dueDateObj?.toISOString() : undefined;
           const card: ReactTrello.DraggableCard = {
             id: item.id,
             laneId: item.status,
@@ -135,6 +138,7 @@ export const App: React.FC = () => {
   const onCardClick = (cardId: string, metadata: ICard) => {
     setCurrentCard(metadata);
     form.resetFields();
+    metadata.dueDateObj = metadata.dueDate ? dayjs(metadata.dueDate) : undefined;
     form.setFieldsValue(metadata);
     setModalOpened(true);
   }
@@ -217,9 +221,7 @@ export const App: React.FC = () => {
         maskClosable={false}
         open={modalOpened}
         title={currentCard ? 'Edit' : 'New To do'}
-        onCancel={_ => {
-          setModalOpened(false);
-        }}
+        onCancel={_ => setModalOpened(false)}
         onOk={onFormSubmitted}
       >
         <CardForm
