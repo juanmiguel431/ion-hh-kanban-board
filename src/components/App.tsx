@@ -86,40 +86,47 @@ const initialData: ReactTrello.BoardData = {
 }
 
 export const App: React.FC = () => {
-  const [modalOpened, setModalOpened] = useState<boolean>(false);
+  const [modalOpened, setModalOpened] = useState(false);
   const [form] = Form.useForm<ICard>();
   const [data, setData] = useState<ReactTrello.BoardData>(initialData);
   const [currentCard, setCurrentCard] = useState<ICard | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const onFormSubmitted = () => {
-    form.validateFields().then(item => {
-      if (currentCard) {
-        const cardEdited = { ...currentCard, ...item };
-        const lane = data.lanes.find(p => p.id === cardEdited.status);
-        const card = lane.cards?.find((p: ReactTrello.DraggableCard) => p.id === cardEdited.id);
-        card.title = cardEdited.title;
-        card.description = cardEdited.description;
-        card.metadata = cardEdited;
+    form.validateFields().then(async item => {
+      try {
+        setIsLoading(true);
+        await produceFakeDelay(3000);
+        if (currentCard) {
+          const cardEdited = { ...currentCard, ...item };
+          const lane = data.lanes.find(p => p.id === cardEdited.status);
+          const card = lane.cards?.find((p: ReactTrello.DraggableCard) => p.id === cardEdited.id);
+          card.title = cardEdited.title;
+          card.description = cardEdited.description;
+          card.metadata = cardEdited;
 
-        setCurrentCard(null);
-      } else {
-        const todo: CardStatus = 'Todo';
-        const lane = data.lanes.find(p => p.id === todo);
-        item.id = Guid.raw();
-        item.status = todo;
-        const card: ReactTrello.DraggableCard = {
-          id: item.id,
-          laneId: item.status,
-          title: item.title,
-          description: item.description,
-          metadata: item,
-        };
+          setCurrentCard(null);
+        } else {
+          const todo: CardStatus = 'Todo';
+          const lane = data.lanes.find(p => p.id === todo);
+          item.id = Guid.raw();
+          item.status = todo;
+          const card: ReactTrello.DraggableCard = {
+            id: item.id,
+            laneId: item.status,
+            title: item.title,
+            description: item.description,
+            metadata: item,
+          };
 
-        lane.cards?.push(card);
+          lane.cards?.push(card);
+        }
+
+        setData({ ...data });
+        setModalOpened(false);
+      } finally {
+        setIsLoading(false);
       }
-
-      setData({ ...data });
-      setModalOpened(false);
     });
   };
 
@@ -136,12 +143,16 @@ export const App: React.FC = () => {
     setModalOpened(true);
   }
 
+  const produceFakeDelay = async (ms: number) => {
+    await new Promise(r => setTimeout(r, ms));
+  }
+
   const onDeleteClick = (cb: Function) => {
     confirm({
       title: 'Do you want to delete this item?',
       icon: <ExclamationCircleFilled/>,
       onOk: async () => {
-        await new Promise(r => setTimeout(r, 1500));
+        await produceFakeDelay(1500);
         cb();
       }
     });
@@ -167,6 +178,7 @@ export const App: React.FC = () => {
       />
 
       <Modal
+        confirmLoading={isLoading}
         maskClosable={false}
         open={modalOpened}
         title={currentCard ? 'Edit' : 'New To do'}
@@ -175,7 +187,10 @@ export const App: React.FC = () => {
         }}
         onOk={onFormSubmitted}
       >
-        <CardForm form={form}/>
+        <CardForm
+          form={form}
+          disabled={isLoading}
+        />
       </Modal>
     </div>
   );

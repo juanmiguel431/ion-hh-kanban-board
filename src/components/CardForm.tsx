@@ -9,12 +9,14 @@ const tagsData: CardTags[] = ['SEO', 'Long Form', 'Blog Post'];
 
 interface IProps {
   form: FormInstance<ICard>;
+  disabled?: boolean;
 }
 
-const CardForm: React.FC<IProps> = ({form}) => {
+const CardForm: React.FC<IProps> = ({form, disabled}) => {
   return (
     <div className="card-form">
       <Form
+        disabled={disabled}
         form={form}
         autoComplete="off"
         labelCol={{ span: 8 }}
@@ -32,13 +34,13 @@ const CardForm: React.FC<IProps> = ({form}) => {
           name="description"
           rules={[{ required: true, message: 'Please input the description!' }]}
         >
-          <TextArea/>
+          <TextArea disabled={disabled}/>
         </Form.Item>
         <Form.Item
           label="Tags"
           name="tags"
         >
-          <CheckableTag dataSource={tagsData}/>
+          <CheckableTag dataSource={tagsData} disabled={disabled} />
         </Form.Item>
         <Form.Item
           label="Due date"
